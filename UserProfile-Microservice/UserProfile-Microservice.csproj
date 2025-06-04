@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <Folder Include="Shared\" />
-      <Folder Include="UserProfile\" />
+      <Folder Include="UserProfile\Application\" />
     </ItemGroup>
 
 </Project>
