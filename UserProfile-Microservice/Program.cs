@@ -4,8 +4,10 @@ using DittoBox.API.Shared.Infrastructure.Repositories;
 using DittoBox.API.UserProfile.Application.Handlers.Interfaces;
 using DittoBox.API.UserProfile.Application.Handlers.Internal;
 using DittoBox.API.UserProfile.Application.Services;
+using DittoBox.API.UserProfile.Domain.Clients;
 using DittoBox.API.UserProfile.Domain.Repositories;
 using DittoBox.API.UserProfile.Domain.Services.Application;
+using DittoBox.API.UserProfile.Infrastructure.Clients;
 using DittoBox.API.UserProfile.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -118,6 +120,7 @@ namespace DittoBox.API
         {
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddHttpClient<IAccountServiceClient, AccountServiceClient>();
         }
     }
 }

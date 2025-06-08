@@ -2,6 +2,7 @@ using DittoBox.API.UserProfile.Application.Commands;
 using DittoBox.API.UserProfile.Application.Resources;
 using DittoBox.API.UserProfile.Application.Handlers.Interfaces;
 using DittoBox.API.UserProfile.Application.Queries;
+using DittoBox.API.UserProfile.Domain.Clients;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DittoBox.API.UserProfile.Interface
