@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres-userprofile:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: axora_userprofile_db
+    ports:
+      - "5433:5432"
+
+  userprofile:
+    build:
+      context: .
+      dockerfile: UserProfile-Microservice/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__POSTGRES_CONNECTION_STRING=Host=postgres-userprofile;Port=5432;Database=axora_userprofile_db;Username=postgres;Password=12345678
+    depends_on:
+      - postgres-userprofile
