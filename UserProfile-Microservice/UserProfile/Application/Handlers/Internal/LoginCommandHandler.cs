@@ -15,11 +15,12 @@ namespace DittoBox.API.UserProfile.Application.Handlers.Internal
 		public async Task<LoginResource?> Handle(LoginCommand command)
 		{
 			var user = await userService.GetUserByEmail(command.Email);
-			var token = await userService.Login(command.Email, command.Password);
-			if (user == null || token == null)
-			{
+			if (user == null)
 				return null;
-			}
+
+			var token = await userService.Login(command.Email, command.Password);
+			if (token == null)
+				return null;
 
 			var profile = await profileService.GetProfile(user.Id);
 			var privileges = await profileService.ListUserPrivileges(user.Id);

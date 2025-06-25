@@ -23,7 +23,10 @@ namespace DittoBox.API.UserProfile.Application.Resources
 				AccountId = profile.AccountId,
 				GroupId = profile.GroupId,
 				UserId = profile.UserId,
-				Privileges = profile.ProfilePrivileges.Select(p => p.Privilege.ToString()).ToArray()};
+				Privileges = profile.ProfilePrivileges != null
+					? profile.ProfilePrivileges.Select(p => p.Privilege.ToString()).ToArray()
+					: []
+			};
 		}
 	}
 }

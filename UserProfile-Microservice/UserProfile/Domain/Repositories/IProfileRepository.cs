@@ -5,5 +5,6 @@ namespace DittoBox.API.UserProfile.Domain.Repositories {
     public interface IProfileRepository : IBaseRepository<Profile>
     {
         public Task<IEnumerable<Profile>> GetByAccountId(int accountId);
+        Task<Profile?> GetById(int id);
     }
 }
