@@ -4,8 +4,10 @@ using DittoBox.API.Shared.Infrastructure.Repositories;
 using DittoBox.API.UserProfile.Application.Handlers.Interfaces;
 using DittoBox.API.UserProfile.Application.Handlers.Internal;
 using DittoBox.API.UserProfile.Application.Services;
+using DittoBox.API.UserProfile.Domain.Clients;
 using DittoBox.API.UserProfile.Domain.Repositories;
 using DittoBox.API.UserProfile.Domain.Services.Application;
+using DittoBox.API.UserProfile.Infrastructure.Clients;
 using DittoBox.API.UserProfile.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,9 +38,13 @@ namespace DittoBox.API
                 throw new ArgumentException("PostgreSQL connection string is not configured.");
             }
 
-            builder.Services.AddDbContext<ApplicationDbContext>(
-                options => options.UseNpgsql(
-                    postgresConnectionString
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseNpgsql(postgresConnectionString, npgsqlOptions =>
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorCodesToAdd: null
+                    )
                 )
             );
 
@@ -60,15 +66,36 @@ namespace DittoBox.API
             app.UseSwaggerUI();
 
 
-            // Reset database
+            // Reset database with retries
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                int retries = 5;
 
-                if (Environment.GetEnvironmentVariable("RESET_DATABASE") == "true") {
-                  db.Database.EnsureDeleted();
+                while (retries > 0)
+                {
+                    try
+                    {
+                        Console.WriteLine("Trying to connect to the database...");
+
+                        if (Environment.GetEnvironmentVariable("RESET_DATABASE") == "true")
+                        {
+                            Console.WriteLine("RESET_DATABASE=true detected. Deleting existing database...");
+                            db.Database.EnsureDeleted();
+                            Console.WriteLine("Database deleted.");
+                        }
+
+                        db.Database.EnsureCreated();
+                        Console.WriteLine("Database ensured/created.");
+                        break; // success
+                    }
+                    catch (Exception ex)
+                    {
+                        retries--;
+                        Console.WriteLine($"Exception during DB init: {ex.Message}. Retries left: {retries}");
+                        Thread.Sleep(2000);
+                    }
                 }
-                db.Database.EnsureCreated();
             }
 
             app.UseHttpsRedirection();
@@ -118,6 +145,7 @@ namespace DittoBox.API
         {
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProfileService, ProfileService>();
+            builder.Services.AddHttpClient<IAccountServiceClient, AccountServiceClient>();
         }
     }
 }

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres-userprofile:
+    image: postgres:16
+    container_name: postgres_userprofile_container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: axora_userprofile_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_userprofile_data:/var/lib/postgresql/data
+
+  container-userprofile:
+    build:
+      context: .
+      dockerfile: UserProfile-Microservice/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - ConnectionStrings__POSTGRES_CONNECTION_STRING=Host=postgres-userprofile;Port=5432;Database=axora_userprofile_db;Username=postgres;Password=12345678
+      - RESET_DATABASE=true
+    depends_on:
+      - postgres-userprofile
+    restart: always
+
+volumes:
+  postgres_userprofile_data:

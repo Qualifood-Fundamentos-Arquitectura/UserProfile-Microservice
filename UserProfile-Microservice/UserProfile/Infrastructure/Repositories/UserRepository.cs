@@ -6,13 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DittoBox.API.UserProfile.Infrastructure.Repositories
 {
-    public class UserRepository(ApplicationDbContext context) : BaseRepository<User>(context), IUserRepository
-    {
+	public class UserRepository : BaseRepository<User>, IUserRepository
+	{
+		public UserRepository(ApplicationDbContext context) : base(context)
+		{
+		}
 
-        public async Task<User?> GetByEmail(string email)
-        {
-            return await context.Users.FirstOrDefaultAsync(u => u.Email == email);
-        }
+		public async Task<User?> GetByEmail(string email)
+		{
+			return await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+		}
 
 		public Task<User?> GetByUsername(string username)
 		{

@@ -1,35 +1,43 @@
 ﻿using DittoBox.API.UserProfile.Application.Commands;
 using DittoBox.API.UserProfile.Application.Handlers.Interfaces;
 using DittoBox.API.UserProfile.Application.Resources;
+using DittoBox.API.UserProfile.Domain.Clients;
 using DittoBox.API.UserProfile.Domain.Services.Application;
 
 namespace DittoBox.API.UserProfile.Application.Handlers.Internal
 {
 	public class LoginCommandHandler(
 		IUserService userService,
-		IProfileService profileService
+		IProfileService profileService,
+		IAccountServiceClient accountServiceClient
 	) : ILoginCommandHandler
 	{
 		public async Task<LoginResource?> Handle(LoginCommand command)
 		{
-			var user = await userService.GetUserByEmail(command.Email) ?? null;
-			var token = await userService.Login(command.Email, command.Password) ?? null;
-			if (user == null || token == null)
-			{
+			var user = await userService.GetUserByEmail(command.Email);
+			if (user == null)
 				return null;
-			}
 
-			var profile = await profileService.GetProfile(user.Id) ?? null;
-			var privileges = await profileService.ListUserPrivileges(user.Id) ?? null;
+			var token = await userService.Login(command.Email, command.Password);
+			if (token == null)
+				return null;
+
+			var profile = await profileService.GetProfile(user.Id);
+			var privileges = await profileService.ListUserPrivileges(user.Id);
 
 			int? accountId = null;
 			int? groupId = null;
+
 			if (profile != null)
 			{
 				accountId = profile.AccountId;
 				groupId = profile.GroupId;
-			}
 
+				if (accountId.HasValue)
+				{
+					var account = await accountServiceClient.GetAccountById(accountId.Value);
+				}
+			}
 
 			return new LoginResource()
 			{
@@ -39,9 +47,8 @@ namespace DittoBox.API.UserProfile.Application.Handlers.Internal
 				AccountId = accountId,
 				GroupId = groupId,
 				ProfileId = user.Id,
-				Privileges = privileges == null ? [] : privileges.Select(p => p.ToString()).ToArray()
+				Privileges = privileges?.Select(p => p.ToString()).ToArray() ?? []
 			};
-
 		}
 	}
 }
